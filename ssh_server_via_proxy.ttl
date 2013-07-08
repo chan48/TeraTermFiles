@@ -1,0 +1,70 @@
+; auto login to target server via proxy server
+;
+; File: ssh_server_via_proxy.ttl
+; Description: auto login to target server via proxy server
+; Update: 2013/07/09
+; Author: tamano
+
+; 共通設定
+dynamicpass = 1   ; パスワードを実行時に入力する「1」
+
+; 中継サーバー
+hostname0 = 'PROXY SERVER'
+portnum0 = '22'
+username0 = 'USERNAME'
+password0 = 'PASSWORD' ; dynammicepass=0の場合のみ有効
+
+; 接続先のサーバー
+hostname1 = 'TARGET SERVER'
+portnum1 = '22'
+username1 = 'USERNAME'
+password1 = 'PASSWORD' ; dynammicepass=0の場合のみ有効
+
+
+if dynamicpass then
+  passwordtext0 = 'Enter password for '
+  strconcat passwordtext0 hostname0
+  passwordbox passwordtext0 passwordtext0
+  password0 = inputstr
+
+  passwordtext1 = 'Enter password for '
+  strconcat passwordtext1 hostname1
+  passwordbox passwordtext1 passwordtext1
+  password1 = inputstr
+endif
+
+; 中継サーバーにssh
+msg = hostname0
+strconcat msg ':'
+strconcat msg portnum0
+strconcat msg ' /ssh /auth=password /user='
+strconcat msg username0
+strconcat msg ' /passwd='
+strconcat msg password0
+connect msg
+
+;「$」という文字がでるまで待つ
+prompt1 = '$'
+wait prompt1
+
+; 中継サーバーから接続したいサーバーにssh
+msg = ''
+strconcat msg 'ssh -p'
+strconcat msg portnum1
+strconcat msg ' '
+strconcat msg username1
+strconcat msg '@'
+strconcat msg hostname1
+sendln msg
+
+; 「password: 」という文字がでるまで待ってパスワード入力。
+prompt2 = "password: "
+wait prompt2
+sendln password1
+
+; タイトルキャプションの変更
+title = ''
+strconcat title hostname1
+strconcat title ' via '
+strconcat title hostname0
+settitle title
