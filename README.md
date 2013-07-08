@@ -1,0 +1,4 @@
+TeraTermFiles
+=============
+
+Macro for TeraTerm
